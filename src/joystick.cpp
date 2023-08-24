@@ -220,8 +220,17 @@ void copyData()
 
 int compareData()
 {
-  return memcmp((uint8_t *)&predata, (uint8_t *)&data, sizeof(data));
-  // return 0;
+  if (abs(predata.j1PotX - data.j1PotX) > 5 || abs(predata.j1PotY - data.j1PotY) > 5 || abs(predata.j2PotX - data.j2PotX) > 5 || abs(predata.j2PotY - data.j2PotY) > 5)
+  {
+    return 1;
+  }
+
+  if (predata.buttonLB != data.buttonLB || predata.buttonRB != data.buttonRB || predata.buttonR1 != data.buttonR1 || predata.buttonR2 != data.buttonR2 || predata.tSwitch1 != data.tSwitch1)
+  {
+    return 1;
+  }
+
+  return 0;
 }
 
 void JoyStick_Reset()
@@ -294,7 +303,8 @@ void JoyStick_Init()
 {
   pinmode_pullup();
   JoyStick_Reset();
-  ESPNOW_Init(ESPNOW_MODE_BROADCAST, JoyStick_OnDataRecv);
+  ESPNOW_Init(ESPNOW_MODE_BROADCAST);
+  ESPNOW_RegisterApp(ESPNOW_APPID_JOYSTICK, JoyStick_OnDataRecv);
 
   eeprom_ini(); // EEPROM初始化
   Serial.print(" LX_zero: ");
@@ -310,7 +320,7 @@ void JoyStick_Init()
 // 发送数据 send data
 void JoyStick_SendData()
 {
-  ESPNOW_sendMessageBroadcast((uint8_t *)&data, sizeof(data));
+  ESPNOW_SendMessageBroadcast(ESPNOW_APPID_JOYSTICK, (uint8_t *)&data, sizeof(data));
 }
 
 void JoyStick_Loop()
